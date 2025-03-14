@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /identity
+
+spring:
+  datasource:
+    #local
+    url: ${DBMS_CONNECTION:jdbc:mysql://52.192.206.206:3306/identity}
+    #hosted
+#    url: ${DBMS_CONNECTION:jdbc:mysql://mysql:3306/identity}
+
+    driverClassName: "com.mysql.cj.jdbc.Driver"
+    username: ${DBMS_USERNAME:root}
+    password: ${DBMS_PASSWORD:Quocanh2000be}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    redis:
+#      local
+      host: localhost
+#      hosted
+#      host: ${REDIS_CONNECTION:redis-container}
+      port: 6379
+
+
+
+#  kafka:
+#    bootstrap-servers: localhost:9094
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+jwt:
+  signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
+
+
+app:
+  services:
+    profile: http://localhost:8081/profile
+    notification: http://localhost:8083/notification
+
+  #hosted
+#app:
+#  services:
+#    notification: ${NOTIFICATION_SERVICE_URL:http://notification:8083/notification}
+#    profile: ${PROFILE_SERVICE_URL:http://profile:8081/profile}

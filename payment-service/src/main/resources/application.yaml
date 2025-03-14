@@ -1,0 +1,46 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /payment
+
+spring:
+  datasource:
+    #local
+    url: ${DBMS_CONNECTION:jdbc:mysql://52.192.206.206:3306/payment}
+    #hosted
+#    url: ${DBMS_CONNECTION:jdbc:mysql://mysql:3306/payment}
+
+    driverClassName: "com.mysql.cj.jdbc.Driver"
+    username: ${DBMS_USERNAME:root}
+    password: ${DBMS_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+#  kafka:
+#    bootstrap-servers: localhost:9094
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+jwt:
+  signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
+#  local
+app:
+  services:
+    profile: http://localhost:8081/profile
+    notification: http://localhost:8083/notification
+    app-data-service: http://localhost:8082/app-data-serive
+
+paypal:
+  api:
+    base-url: ${PAYPAL_API_BASE_URL:https://api-m.sandbox.paypal.com} # PayPal API base URL
+  client-id: ${PAYPAL_CLIENT_ID:your-client-id-here}     # PayPal Client ID
+  secret: ${PAYPAL_SECRET:your-secret-here}           # PayPal Secret Key
+
+
+  #hosted
+#app:
+#  services:
+#    profile: ${PROFILE_SERVICE_URL:http://profile:8081/profile}
+#    notification: ${NOTIFICATION_SERVICE_URL:http://notification:8083/notification}

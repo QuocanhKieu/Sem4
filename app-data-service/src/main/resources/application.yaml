@@ -1,0 +1,31 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /app-data-service
+spring:
+  application:
+    name: app-data-service
+  data:
+    mongodb:
+#      #      hosted
+#      uri: ${MONGO_URI:mongodb://root:Quocanh2000be@mongodb:27017/app-data-service?authSource=admin}
+      #local
+      uri: mongodb://root:Quocanh2000be@52.192.206.206:27017/app-data-service?authSource=admin
+
+  security:
+    user:
+      name: root
+      password: root
+logging:
+  level:
+    org.springframework.data.mongodb.core: DEBUG
+app:
+  services:
+    profile: http://localhost:8081/profile
+    notification: http://localhost:8083/notification
+
+  #hosted
+#app:
+#  services:
+#    profile: ${PROFILE_SERVICE_URL:http://profile:8081/profile}
+#    notification: ${NOTIFICATION_SERVICE_URL:http://notification:8083/notification}
