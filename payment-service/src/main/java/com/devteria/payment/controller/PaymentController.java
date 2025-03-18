@@ -3,6 +3,7 @@ package com.devteria.payment.controller;
 
 import com.devteria.payment.configuration.SecurityUtils;
 import com.devteria.payment.dto.VoucherDTO;
+import com.devteria.payment.dto.request.PaymentRequest;
 import com.devteria.payment.entity.Voucher;
 import com.devteria.payment.service.PaymentService;
 import com.devteria.payment.service.VoucherService;
@@ -25,13 +26,11 @@ public class PaymentController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyPayment(
-            @RequestParam String orderId,
-            @RequestParam String bookingId,
-            @RequestParam(required = false) String voucherId) {
+            @RequestBody  PaymentRequest paymentRequest) {
 
         String userId = securityUtils.getCurrentUserId(); // Replace with actual user retrieval logic
 
-        String message = paymentService.verifyPayment(orderId, bookingId, voucherId, userId);
+        String message = paymentService.verifyPayment(paymentRequest.getOrderId(), paymentRequest.getBookingId(), paymentRequest.getVoucherId(), paymentRequest.getInitialPrice(), userId);
 
         if (message.contains("Failed")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);

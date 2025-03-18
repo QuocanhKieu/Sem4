@@ -1,5 +1,6 @@
 package com.devteria.app_data_service.entity;
 
+import com.devteria.app_data_service.enums.ServiceProvidedEnums;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import com.devteria.app_data_service.enums.LocationServiceEnums;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class Location {
         @GeoSpatialIndexed // ✅ Enables geospatial indexing for location field
     private GeoJsonPoint location;
 
-    private List<LocationServiceEnums> services;
+    private List<ServiceProvidedEnums> services;
 
     @Transient // ✅ Exclude from MongoDB storage
     private double distance;

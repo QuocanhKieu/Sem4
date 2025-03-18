@@ -1,5 +1,6 @@
 package com.devteria.app_data_service.controller;
 
+import com.devteria.app_data_service.configuration.SecurityUtils;
 import com.devteria.app_data_service.dto.ApiResponse;
 import com.devteria.app_data_service.dto.request.BookingRequest;
 import com.devteria.app_data_service.dto.request.ConfirmedBookingRequest;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final SecurityUtils securityUtils;
 //    private final BookingRepository bookingRepository;
 
 
@@ -89,6 +91,15 @@ public class BookingController {
     public ResponseEntity<Booking> cancelBooking(@PathVariable String bookingId) {
         Booking cancelledBooking = bookingService.cancelAndReturnBooking(bookingId);
         return ResponseEntity.ok(cancelledBooking);
+    }
+
+    @GetMapping("/get/bookings")
+    public ResponseEntity<List<Booking>> getBookingsByUser(
+            @RequestParam(required = false) ServiceProvidedEnums type
+    ) {
+        String userId = securityUtils.getCurrentUserId();
+        List<Booking> bookings = bookingService.getBookingsByUserId(userId, type);
+        return ResponseEntity.ok(bookings);
     }
 
 //    @GetMapping("/valid-slots")

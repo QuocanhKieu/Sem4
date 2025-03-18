@@ -22,6 +22,8 @@ import com.google.zxing.WriterException;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,9 +69,12 @@ public class BookingService {
 
     // Create a new booking // next button
     public Booking createBooking(BookingRequest bookingRequest) {
-        Duration duration = Duration.between(bookingRequest.getStartDateTime(),  bookingRequest.getEndDateTime());
-        double hours = duration.toMinutes() / 60.0;
-        if (hours > 10) {
+        Duration duration = Duration.between(bookingRequest.getStartDateTime(), bookingRequest.getEndDateTime());
+
+// Convert minutes to hours with precise division
+        BigDecimal hours = BigDecimal.valueOf(duration.toMinutes())
+                .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+        if (hours.compareTo(BigDecimal.valueOf(10)) > 0) {
             throw new IllegalArgumentException("Booking cannot exceed 10 hours");
         }
         Set<String> invalidSlots = getInvalidSlots(
@@ -112,12 +117,14 @@ public class BookingService {
 
         // Calculate total price based on slot count
         int numberOfSlots = requestedSlotIds.size();
-        double price = 0.0;
+        BigDecimal price = BigDecimal.ZERO; // Initialize properly
 
         if (bookingRequest.getType() == ServiceProvidedEnums.CHARGING) {
-            price = costCalculatorService.calculateChargingCost(hours, bookingRequest.getWattHours()) * numberOfSlots;
+            price = costCalculatorService.calculateChargingCost(hours, bookingRequest.getWattHours())
+                    .multiply(BigDecimal.valueOf(numberOfSlots));
         } else if (bookingRequest.getType() == ServiceProvidedEnums.PARKING) {
-            price = costCalculatorService.calculateParkingCost(hours) * numberOfSlots;
+            price = costCalculatorService.calculateParkingCost(hours)
+                    .multiply(BigDecimal.valueOf(numberOfSlots));
         }
 
         booking.setPrice(price);
@@ -394,6 +401,14 @@ public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type,
     public Booking findBookingById(String bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+    }
+
+
+    public List<Booking> getBookingsByUserId(String userId, ServiceProvidedEnums type) {
+        if (type == null) {
+            return bookingRepository.findByUserId(userId); // Return all bookings if no type is provided
+        }
+        return bookingRepository.findByUserIdAndType(userId, type);
     }
 
 }

@@ -1,17 +1,25 @@
 package com.devteria.app_data_service.enums;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public enum ParkingRate {
-    PEAK(20000),
-    NORMAL(15000);
+    PEAK(BigDecimal.valueOf(20000)),
+    NORMAL(BigDecimal.valueOf(15000));
 
-    private final double priceVND;
+    private static final BigDecimal EXCHANGE_RATE = BigDecimal.valueOf(25000); // Example: 1 USD = 24,000 VND
 
-    ParkingRate(double priceVND) {
+    private final BigDecimal priceVND;
+
+    ParkingRate(BigDecimal priceVND) {
         this.priceVND = priceVND;
     }
 
-    public double getPriceVND() {
+    public BigDecimal getPriceVND() {
         return priceVND;
     }
 
+    public BigDecimal getPriceUSD() {
+        return priceVND.divide(EXCHANGE_RATE, 2, RoundingMode.HALF_UP); // Convert to USD with 4 decimal places
+    }
 }

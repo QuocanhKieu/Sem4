@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 
 public class ConfirmedBookingRequest {
     String bookingId;
-    Double finalPrice;
+    BigDecimal finalPrice;
     String voucherId;
-    Double voucherAmount;
+    BigDecimal voucherAmount;
 }

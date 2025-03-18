@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -45,16 +46,17 @@ public class    Booking {
 
     ServiceProvidedEnums type;
     BookingStatusEnums status;// get updated when confirmed
+    String canceledReason;// get updated when confirmed
 
     Integer wattHours;
 
-    Double duration; // calculate
+    BigDecimal duration; // calculate
 
-    Double price;//  calculate
-    Double finalPrice;// get updated when confirmed
+    BigDecimal price;//  calculate
+    BigDecimal finalPrice;// get updated when confirmed
 
     String voucherId;// get updated when confirmed
-    Double voucherAmount;// get updated when confirmed
+    BigDecimal voucherAmount;// get updated when confirmed
 
 //    @Indexed(expireAfterSeconds = 60) // Deletes only PENDING records
     @CreatedDate

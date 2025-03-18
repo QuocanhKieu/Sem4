@@ -2,6 +2,7 @@ package com.devteria.app_data_service.repository;
 
 import com.devteria.app_data_service.entity.Booking;
 import com.devteria.app_data_service.enums.BookingStatusEnums;
+import com.devteria.app_data_service.enums.ServiceProvidedEnums;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -31,6 +32,11 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     """)
     List<Booking> findOverlappingBookings(String locationId, Instant startDateTime, Instant endDateTime, String type);
 
+    List<Booking> findByUserId(String userId);
+
+
+    // Find by userId and type (Charging or Parking)
+    List<Booking> findByUserIdAndType(String userId, ServiceProvidedEnums type);
 
 //    void updateStatusForExpiredBookings(BookingStatusEnums currentStatus, Instant expirationTime, BookingStatusEnums newStatus);
 }

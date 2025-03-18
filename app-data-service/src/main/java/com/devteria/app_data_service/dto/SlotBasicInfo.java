@@ -12,5 +12,6 @@ import lombok.experimental.FieldDefaults;
 public class SlotBasicInfo {
     String slotId;
     String slotNumber;
+    String zoneGate;
     String slotBookedQr;
 }

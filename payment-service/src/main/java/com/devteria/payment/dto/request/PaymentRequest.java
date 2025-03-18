@@ -15,10 +15,16 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PaymentRequest {
     private String bookingId;
-    private BigDecimal totalPrice;
-    private PaymentMethod paymentMethod;
-    private PaymentGatewayEnums paymentGateway;
-    private String voucherCode;
+    private String orderId;
+    private String voucherId;
+    private BigDecimal initialPrice;
+//    private PaymentMethod paymentMethod;
+//    private PaymentGatewayEnums paymentGateway;
 }
+
+
+//@RequestParam String orderId,
+//@RequestParam String bookingId,
+//@RequestParam(required = false) String voucherId) {
 
 

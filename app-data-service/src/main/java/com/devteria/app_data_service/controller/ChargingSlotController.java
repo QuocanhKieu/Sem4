@@ -32,11 +32,11 @@ public class ChargingSlotController {
 //    }
 //
 //    // ✅ Get a single parking slot by ID
-//    @GetMapping("/{id}")
-//    public ResponseEntity<ChargingSlot> getChargingSlotById(@PathVariable String id) {
-//        Optional<ChargingSlot> chargingSlot = chargingSlotservice.getChargingSlotById(id);
-//        return chargingSlot.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-//    }
+    @GetMapping("/{id}")
+    public ResponseEntity<ChargingSlot> getChargingSlotById(@PathVariable String id) {
+        Optional<ChargingSlot> chargingSlot = chargingSlotService.getChargingSlotById(id);
+        return chargingSlot.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
 //
     // ✅ Get all parking slots for a location
     @GetMapping("/location/{locationId}")

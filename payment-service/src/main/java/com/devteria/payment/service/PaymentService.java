@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -80,7 +81,7 @@ public class PaymentService {
     }
 
 
-    public String verifyPayment(String orderId, String bookingId, String voucherId, String userId) {
+    public String verifyPayment(String orderId, String bookingId, String voucherId, BigDecimal initialPrice, String userId) {
         String accessToken = payPalService.getAccessToken();
 
         HttpHeaders headers = new HttpHeaders();
@@ -128,9 +129,15 @@ public class PaymentService {
                 try {
                     bookingAppDataClient.confirmBooking(ConfirmedBookingRequest.builder()
                             .bookingId(bookingId)
-                            .finalPrice(amount.doubleValue())
+                            .finalPrice(amount)
                             .voucherId(voucherId)
-                            .voucherAmount(voucher.getDiscountAmount().doubleValue())
+                            .voucherAmount(
+                                    (voucher.isPercentage()
+                                            ? initialPrice.multiply(voucher.getDiscountAmount().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP))
+                                            : voucher.getDiscountAmount()
+                                    ).setScale(2, RoundingMode.HALF_UP) // Ensure 2 decimal places
+                            )
+
                             .build());
 
                 } catch (FeignException e) { // Handle Feign client errors

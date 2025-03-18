@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,9 @@ public class BookingConfirmedEmailRequest {
     List<SlotBasicInfo> slotBasicInfos;
     ServiceProvidedEnums type;
     Integer wattHours;
-    Double duration; // calculate
-    Double price;//  calculate
-    Double finalPrice;// get updated when confirmed
-    Double voucherAmount;// get updated when confirmed
+    BigDecimal duration; // calculate
+    BigDecimal price;//  calculate
+    BigDecimal finalPrice;// get updated when confirmed
+    BigDecimal voucherAmount;// get updated when confirmed
 
 }

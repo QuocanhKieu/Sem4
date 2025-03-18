@@ -27,5 +27,5 @@ app:
   #hosted
 #app:
 #  services:
-#    profile: ${PROFILE_SERVICE_URL:http://profile:8081/profile}
+##    profile: ${PROFILE_SERVICE_URL:http://profile:8081/profile}
 #    notification: ${NOTIFICATION_SERVICE_URL:http://notification:8083/notification}
