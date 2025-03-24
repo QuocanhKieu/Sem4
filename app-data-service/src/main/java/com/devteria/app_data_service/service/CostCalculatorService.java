@@ -2,10 +2,12 @@ package com.devteria.app_data_service.service;
 
 import com.devteria.app_data_service.enums.ParkingRate;
 import com.devteria.app_data_service.enums.ChargingRate;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@Service
 public class CostCalculatorService {
 
     public BigDecimal calculateParkingCost(BigDecimal duration) {

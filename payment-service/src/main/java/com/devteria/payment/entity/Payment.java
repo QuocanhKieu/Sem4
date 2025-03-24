@@ -32,11 +32,15 @@ public class Payment {
     private String userId;
 
     @Column(nullable = false)
-    private BigDecimal totalPrice;
+    private BigDecimal initialPrice;
+
+    @Column(nullable = false)
+    private BigDecimal finalPrice;
 
     @ManyToOne
     @JoinColumn(name = "voucher_id", nullable = true)
     private Voucher voucher;
+    private BigDecimal voucherAmount; // Stores refunded amount, if any
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -44,10 +48,6 @@ public class Payment {
 
     @Column(nullable = false)
     private String currency;
-
-//    @Column(nullable = false)
-//    @Enumerated(EnumType.STRING)
-//    private PaymentGatewayEnums paymentGateway;
 
     @Column(nullable = false)
     private Instant paymentDate;
@@ -57,7 +57,6 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus paymentStatus; // Default is paid
 
-
     @Column(precision = 10, scale = 2)
     private BigDecimal refundAmount; // Stores refunded amount, if any
 
@@ -66,7 +65,16 @@ public class Payment {
     @Column(length = 255)
     private String refundReason; // Optional reason for refund
 
-    private String transactionReference; // Reference for external payment gateways
+    // paypal
+    private String paymentId; // PAYID-M7L7ZRY4HT17711CU354961N
+    private String saleId; // 6X449338E3008973X (for refunds)
+    private String payerId; // buyer paypal id
+    private String buyerEmail; // sb-mt6aj38861978@personal.example.com
+    private String merchantId; // receiver paypal user id
+    private BigDecimal transactionFee; // 0.51 USD
+    private String refundUrl; // URL for refund
+    private String refundPaymentId; // URL for refund
+
 
     // Constructors, Getters, Setters
 }

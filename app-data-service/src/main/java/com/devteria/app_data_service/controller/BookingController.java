@@ -3,7 +3,9 @@ package com.devteria.app_data_service.controller;
 import com.devteria.app_data_service.configuration.SecurityUtils;
 import com.devteria.app_data_service.dto.ApiResponse;
 import com.devteria.app_data_service.dto.request.BookingRequest;
+import com.devteria.app_data_service.dto.request.CancelBookingRequest;
 import com.devteria.app_data_service.dto.request.ConfirmedBookingRequest;
+import com.devteria.app_data_service.dto.request.ExtendBookingRequest;
 import com.devteria.app_data_service.entity.Booking;
 import com.devteria.app_data_service.enums.BookingStatusEnums;
 import com.devteria.app_data_service.enums.ServiceProvidedEnums;
@@ -40,6 +42,13 @@ public class BookingController {
         return ResponseEntity.ok(createdBooking);
     }
 
+    @PostMapping("/extend")
+    public ResponseEntity<Booking> extendBooking(@RequestBody ExtendBookingRequest extendBookingRequest) {
+
+        Booking createdBooking = bookingService.extendBooking(extendBookingRequest);
+        return ResponseEntity.ok(createdBooking);
+    }
+
     @PutMapping("/internal/confirm")
     public ApiResponse<String> confirmBooking(@RequestBody ConfirmedBookingRequest confirmedBookingRequest) throws IOException, WriterException {
             Booking confirmedBooking = bookingService.confirmBooking(confirmedBookingRequest);
@@ -54,13 +63,17 @@ public class BookingController {
             @RequestParam String locationId,
             @RequestParam ServiceProvidedEnums type,
             @RequestParam String startDateTime, // Change from Instant to String
-            @RequestParam String endDateTime) { // Change from Instant to String
+            @RequestParam String endDateTime,
+            @RequestParam(required = false, defaultValue = "false") Boolean isExtended
+
+
+    ) { // Change from Instant to String
 
         // Convert manually from offset date-time to UTC Instant
         Instant startInstant = OffsetDateTime.parse(startDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
         Instant endInstant = OffsetDateTime.parse(endDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
 
-        Set<String> invalidSlots = bookingService.getInvalidSlots(locationId, type, startInstant, endInstant);
+        Set<String> invalidSlots = bookingService.getInvalidSlots(locationId, type, startInstant, endInstant, isExtended);
         return ResponseEntity.ok(invalidSlots);
     }
 
@@ -69,13 +82,15 @@ public class BookingController {
             @RequestParam String locationId,
             @RequestParam ServiceProvidedEnums type,
             @RequestParam String startDateTime, // Change from Instant to String
-            @RequestParam String endDateTime) { // Change from Instant to String
+            @RequestParam String endDateTime,
+            @RequestParam(required = false, defaultValue = "false") Boolean isExtended
+    ) { // Change from Instant to String
 
         // Convert manually from offset date-time to UTC Instant
         Instant startInstant = OffsetDateTime.parse(startDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
         Instant endInstant = OffsetDateTime.parse(endDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
 
-        Set<String> validSlots = bookingService.getValidSlots(locationId, type, startInstant, endInstant);
+        Set<String> validSlots = bookingService.getValidSlots(locationId, type, startInstant, endInstant, isExtended);
         return ResponseEntity.ok(validSlots);
     }
 
@@ -87,9 +102,9 @@ public class BookingController {
     }
 
     // Endpoint to cancel a booking
-    @PostMapping("/cancel/{bookingId}")
-    public ResponseEntity<Booking> cancelBooking(@PathVariable String bookingId) {
-        Booking cancelledBooking = bookingService.cancelAndReturnBooking(bookingId);
+    @PostMapping("/cancel")
+    public ResponseEntity<Booking> cancelBooking(@RequestBody CancelBookingRequest cancelBookingRequest) {
+        Booking cancelledBooking = bookingService.cancelAndReturnBooking(cancelBookingRequest);
         return ResponseEntity.ok(cancelledBooking);
     }
 

@@ -87,34 +87,34 @@ public class PayPalService {
      * @param currency Currency code (e.g., "USD").
      * @return Refund transaction ID.
      */
-    public String refundPayment(String transactionId, BigDecimal refundAmount, String currency) {
-        String accessToken = getAccessToken();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // 🟢 Build refund request body
-        JSONObject requestBody = new JSONObject();
-        JSONObject amount = new JSONObject();
-        amount.put("value", refundAmount.toString());
-        amount.put("currency_code", currency);
-        requestBody.put("amount", amount);
-
-        HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
-
-        // 🔄 Call PayPal Refund API
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/v2/payments/captures/" + transactionId + "/refund",
-                HttpMethod.POST,
-                request,
-                String.class
-        );
-
-        if (response.getStatusCode() == HttpStatus.CREATED) {
-            JSONObject jsonResponse = new JSONObject(response.getBody());
-            return jsonResponse.getString("id"); // Refund transaction ID
-        }
-        throw new RuntimeException("Refund Failed: " + response.getBody());
-    }
+//    public String refundPayment(String transactionId, BigDecimal refundAmount, String currency) {
+//        String accessToken = getAccessToken();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Authorization", "Bearer " + accessToken);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        // 🟢 Build refund request body
+//        JSONObject requestBody = new JSONObject();
+//        JSONObject amount = new JSONObject();
+//        amount.put("value", refundAmount.toString());
+//        amount.put("currency_code", currency);
+//        requestBody.put("amount", amount);
+//
+//        HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
+//
+//        // 🔄 Call PayPal Refund API
+//        ResponseEntity<String> response = restTemplate.exchange(
+//                baseUrl + "/v2/payments/captures/" + transactionId + "/refund",
+//                HttpMethod.POST,
+//                request,
+//                String.class
+//        );
+//
+//        if (response.getStatusCode() == HttpStatus.CREATED) {
+//            JSONObject jsonResponse = new JSONObject(response.getBody());
+//            return jsonResponse.getString("id"); // Refund transaction ID
+//        }
+//        throw new RuntimeException("Refund Failed: " + response.getBody());
+//    }
 }

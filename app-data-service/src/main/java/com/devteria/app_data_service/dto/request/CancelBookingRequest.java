@@ -1,18 +1,17 @@
-package com.devteria.payment.dto.request;
+package com.devteria.app_data_service.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefundRequest {
+public class CancelBookingRequest {
     private String bookingId;
-    private String refundReason;
+    private String cancelReason;
 }
 
 

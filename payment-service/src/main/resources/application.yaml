@@ -12,7 +12,7 @@ spring:
 
     driverClassName: "com.mysql.cj.jdbc.Driver"
     username: ${DBMS_USERNAME:root}
-    password: ${DBMS_PASSWORD:root}
+    password: ${DBMS_PASSWORD:Quocanh2000be}
   jpa:
     hibernate:
       ddl-auto: update
@@ -30,13 +30,22 @@ app:
   services:
     profile: http://localhost:8081/profile
     notification: http://localhost:8083/notification
-    app-data-service: http://localhost:8082/app-data-serive
+    app-data-service: http://localhost:8082/app-data-service
+    payment: http://localhost:8084/payment
+
+#paypal:
+#  api:
+#    base-url: ${PAYPAL_API_BASE_URL:https://api-m.sandbox.paypal.com} # PayPal API base URL
+#  client-id: ${PAYPAL_CLIENT_ID:your-client-id-here}     # PayPal Client ID
+#  secret: ${PAYPAL_SECRET:your-secret-here}           # PayPal Secret Key
+
 
 paypal:
   api:
-    base-url: ${PAYPAL_API_BASE_URL:https://api-m.sandbox.paypal.com} # PayPal API base URL
-  client-id: ${PAYPAL_CLIENT_ID:your-client-id-here}     # PayPal Client ID
-  secret: ${PAYPAL_SECRET:your-secret-here}           # PayPal Secret Key
+    base-url: ${PAYPAL_API_BASE_URL:https://api-m.sandbox.paypal.com} # PayPal API base URL https://api.sandbox.paypal.com
+  client-id: ${PAYPAL_CLIENT_ID:Af236NCNep6PNvqW-JMvdG_zeyLhL8nfZcmZsa16eoyMAlE2pOnphjfFkrZl_I2nbT_8xCPKLJDY3rwj}  # PayPal Client ID
+  secret: ${PAYPAL_SECRET:EBeNaDaZNDHwi_gDDKKIK1313WMmu304dXfL7trEJxuszEcTRHmWivqvHeHHuBosHARCWeIUQQHVJ2HH}  # PayPal Secret Key
+
 
 
   #hosted

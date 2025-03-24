@@ -4,6 +4,7 @@ package com.devteria.payment.controller;
 import com.devteria.payment.configuration.SecurityUtils;
 import com.devteria.payment.dto.VoucherDTO;
 import com.devteria.payment.dto.request.PaymentRequest;
+import com.devteria.payment.dto.request.RefundRequest;
 import com.devteria.payment.entity.Voucher;
 import com.devteria.payment.service.PaymentService;
 import com.devteria.payment.service.VoucherService;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/payments")
+@RequestMapping("payments")
 
 public class PaymentController {
     private final PaymentService paymentService;
@@ -30,7 +31,7 @@ public class PaymentController {
 
         String userId = securityUtils.getCurrentUserId(); // Replace with actual user retrieval logic
 
-        String message = paymentService.verifyPayment(paymentRequest.getOrderId(), paymentRequest.getBookingId(), paymentRequest.getVoucherId(), paymentRequest.getInitialPrice(), userId);
+        String message = paymentService.verifyPayment(paymentRequest, userId);
 
         if (message.contains("Failed")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
@@ -39,10 +40,10 @@ public class PaymentController {
         return ResponseEntity.ok(message);
     }
 
-    @PostMapping("/refund")
-    public ResponseEntity<?> refundOrder(@RequestParam String transactionId, @RequestParam BigDecimal refundAmount) {
+    @PostMapping("internal/refund")
+    public ResponseEntity<?> refundOrder(@RequestBody RefundRequest refundRequest) {
         try {
-            String message = paymentService.processRefund(transactionId, refundAmount);
+            String message = paymentService.refundPayment(refundRequest);
             return ResponseEntity.ok(message);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

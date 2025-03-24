@@ -1,8 +1,6 @@
-package com.devteria.payment.dto.request;
+package com.devteria.app_data_service.dto.request;
 
-import com.devteria.payment.constant.PaymentGatewayEnums;
-import com.devteria.payment.constant.PaymentMethod;
-import com.devteria.payment.dto.PayPalPaymentDto;
+import com.devteria.app_data_service.dto.PayPalPaymentDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

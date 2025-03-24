@@ -3,6 +3,7 @@ package com.devteria.notification.controller;
 import com.devteria.notification.configuration.SecurityUtils;
 import com.devteria.notification.dto.ApiResponse;
 import com.devteria.notification.dto.request.BookingConfirmedEmailRequest;
+import com.devteria.notification.dto.request.BookingRefundedEmailRequest;
 import com.devteria.notification.dto.request.EmailVerifyOTPRequest;
 import com.devteria.notification.dto.request.SendEmailRequest;
 import com.devteria.notification.dto.response.EmailResponse;
@@ -51,6 +52,16 @@ public class EmailController {
 
         return ApiResponse.<String>builder()
                 .result("Booking Confirmed Email sent successfully") // Provide a meaningful success message
+                .build();
+    }
+
+    @PostMapping("/internal/send-email-booking-refund")
+    public ApiResponse<String> sendBookingRefunded(@RequestBody BookingRefundedEmailRequest request) {
+        // Send OTP email
+        emailService.sendBookingRefundedEmail(securityUtils.getCurrentUserEmail(), request);
+
+        return ApiResponse.<String>builder()
+                .result("Booking Refunded Email sent successfully") // Provide a meaningful success message
                 .build();
     }
 //    @KafkaListener(topics = "onboard-successful")

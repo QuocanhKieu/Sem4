@@ -9,15 +9,15 @@ spring:
   data:
     redis:
       #      local
-#      host: localhost
+      host: localhost
       #      hosted
-      host: ${REDIS_CONNECTION:redis-container}
+#      host: ${REDIS_CONNECTION:redis-container}
       port: 6379
     mongodb:
 #      hosted
-      uri: ${MONGO_URI:mongodb://root:Quocanh2000be@mongodb:27017/notification-service?authSource=admin}
+#      uri: ${MONGO_URI:mongodb://root:Quocanh2000be@mongodb:27017/notification-service?authSource=admin}
 # local
-#      uri: mongodb://root:Quocanh2000be@52.192.206.206:27017/notification-service?authSource=admin
+      uri: mongodb://root:Quocanh2000be@52.192.206.206:27017/notification-service?authSource=admin
 
 
 #  kafka:

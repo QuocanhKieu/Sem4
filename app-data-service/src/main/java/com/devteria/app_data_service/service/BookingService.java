@@ -1,10 +1,8 @@
 package com.devteria.app_data_service.service;
 import com.devteria.app_data_service.configuration.SecurityUtils;
 import com.devteria.app_data_service.dto.SlotBasicInfo;
-import com.devteria.app_data_service.dto.request.BookingConfirmedEmailRequest;
-import com.devteria.app_data_service.dto.request.BookingRequest;
-import com.devteria.app_data_service.dto.request.ConfirmedBookingRequest;
-import com.devteria.app_data_service.dto.request.ScheduledNotificationRequest;
+import com.devteria.app_data_service.dto.TimeRange;
+import com.devteria.app_data_service.dto.request.*;
 import com.devteria.app_data_service.entity.ChargingSlot;
 import com.devteria.app_data_service.entity.Location;
 import com.devteria.app_data_service.entity.ParkingSlot;
@@ -16,6 +14,7 @@ import com.devteria.app_data_service.repository.ChargingSlotRepository;
 import com.devteria.app_data_service.repository.LocationRepository;
 import com.devteria.app_data_service.repository.ParkingSlotRepository;
 import com.devteria.app_data_service.repository.httpclient.NotificationClient;
+import com.devteria.app_data_service.repository.httpclient.PaymentClient;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 
@@ -59,6 +58,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
     private final SecurityUtils securityUtils;
+    private final PaymentClient paymentClient;
     private final CostCalculatorService costCalculatorService;
     private final NotificationClient notificationClient;
     private final LocationRepository locationRepository;
@@ -70,18 +70,21 @@ public class BookingService {
     // Create a new booking // next button
     public Booking createBooking(BookingRequest bookingRequest) {
         Duration duration = Duration.between(bookingRequest.getStartDateTime(), bookingRequest.getEndDateTime());
-
+        Boolean isExtended = (bookingRequest.getFromBookingId() != null);
 // Convert minutes to hours with precise division
         BigDecimal hours = BigDecimal.valueOf(duration.toMinutes())
                 .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
         if (hours.compareTo(BigDecimal.valueOf(10)) > 0) {
             throw new IllegalArgumentException("Booking cannot exceed 10 hours");
         }
+
         Set<String> invalidSlots = getInvalidSlots(
                 bookingRequest.getLocationId(),
                 bookingRequest.getType(),
                 bookingRequest.getStartDateTime(),
-                bookingRequest.getEndDateTime()
+                bookingRequest.getEndDateTime(),
+                isExtended
+
         );
         Instant now = Instant.now();
 
@@ -112,6 +115,7 @@ public class BookingService {
         booking.setUserId(securityUtils.getCurrentUserId()); // Set user ID from authentication
         booking.setStatus(BookingStatusEnums.PENDING);
         booking.setSlotBasicInfos(bookingRequest.getSlotBasicInfos());
+        booking.setFromBookingId(bookingRequest.getFromBookingId());
         log.info("current user Id : {}", securityUtils.getCurrentUserId());
         booking.setDuration(hours);
 
@@ -129,6 +133,7 @@ public class BookingService {
 
         booking.setPrice(price);
         log.info("send push notification thank you, tell the user to complete the payment 2 minutes");
+//        if bookingRequest.getFromBookingId() !=null send push notificaiton telling user succesfully extends booking
 
         // send push notification thank you, tell the user to complete the payment 2 minutes
         return bookingRepository.save(booking);
@@ -239,8 +244,14 @@ public class BookingService {
 //                        .map(SlotBasicInfo::getSlotId)) // Extract slotId from SlotBasicInfo
 //                .collect(Collectors.toSet());
 //    }
-public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type, Instant startDateTime, Instant endDateTime) {
+    public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type, Instant startDateTime, Instant endDateTime, Boolean isExtended) {
     Instant now = Instant.now();
+
+    if(!isExtended) {
+        startDateTime = startDateTime.minus(Duration.ofMinutes(10)); // 10 minutes for previous booking to get out
+    }
+
+        endDateTime = endDateTime.plus(Duration.ofMinutes(10)); // 10 minutes for next booking to enter
 
     // Validate start and end times
     if (startDateTime.isBefore(now)) {
@@ -266,8 +277,9 @@ public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type,
 }
 
 
-    public Set<String> getValidSlots(String locationId, ServiceProvidedEnums type, Instant startDateTime, Instant endDateTime) {
-        Set<String> invalidSlots = getInvalidSlots(locationId, type, startDateTime, endDateTime);
+    public Set<String> getValidSlots(String locationId, ServiceProvidedEnums type, Instant startDateTime, Instant endDateTime , Boolean isExtended) {
+//        startDateTime = startDateTime.minus(Duration.ofMinutes(10)); // 10 minutes for previous booking to get out
+        Set<String> invalidSlots = getInvalidSlots(locationId, type, startDateTime, endDateTime, isExtended);
 
         List<String> allSlotIds;
 
@@ -293,83 +305,45 @@ public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type,
                 .collect(Collectors.toSet());
     }
 
-//    @Scheduled(fixedRate = 30000) // Run every 30 seconds
+//    @Scheduled(fixedRate = 60000) // Run every 30 seconds
 //    public void cancelExpiredBookings() {
 //        Instant expirationTime = Instant.now().minusSeconds(120); // Bookings older than 120s
-//        List<Booking> expiredBookings = bookingRepository.findByStatusAndCreatedAtBefore(BookingStatusEnums.PENDING, expirationTime);
 //
-//        for (Booking booking : expiredBookings) {
-//            booking.setStatus(BookingStatusEnums.CANCELLED);
-//            // can send notification here also
-//        }
-//        bookingRepository.saveAll(expiredBookings);
-//    }
-
-//    @Scheduled(fixedRate = 30000) // Run every 30 seconds
-//    public void cancelExpiredBookings() {
-//        Instant expirationTime = Instant.now().minusSeconds(120); // Expiration threshold
-//
-//        // Update all expired pending bookings directly in the database
-//        bookingRepository.updateStatusForExpiredBookings(BookingStatusEnums.PENDING, expirationTime, BookingStatusEnums.CANCELLED);
-//    }
-
-
-//    public void cancelExpiredBookings() {
-//        Instant expirationTime = Instant.now().minusSeconds(120); // Expiration threshold
-//
+//        // Find expired pending bookings
 //        Query query = new Query();
 //        query.addCriteria(Criteria.where("status").is(BookingStatusEnums.PENDING)
 //                .and("createdAt").lt(expirationTime));
 //
-//        Update update = new Update();
-//        update.set("status", BookingStatusEnums.CANCELLED);
+//        List<Booking> expiredBookings = mongoTemplate.find(query, Booking.class);
 //
-//        mongoTemplate.updateMulti(query, update, Booking.class); // Update all matching records
+//        if (!expiredBookings.isEmpty()) {
+//            // Collect user IDs to send notifications
+//            List<String> userIds = expiredBookings.stream()
+//                    .map(Booking::getUserId)
+//                    .toList();
+//
+//            // Update the bookings to CANCELLED
+//            Update update = new Update();
+//            update.set("status", BookingStatusEnums.CANCELLED);
+//            mongoTemplate.updateMulti(query, update, Booking.class);
+//
+//            // Send push notifications
+////            sendPushNotifications(userIds, "Your booking has been cancelled due to inactivity.");
+//            log.info("current users Id booking canceled : {}", userIds);
+//
+//        }
+//        System.out.println("Current Instant Time: " + Instant.now());
+//
 //    }
+
+
+    public Booking cancelAndReturnBooking(CancelBookingRequest cancelBookingRequest) {
+//        Query query = new Query();
+//        query.addCriteria(Criteria.where("_id").is(cancelBookingRequest.getBookingId()));
 //
-//
-//    @Scheduled(fixedRate = 30000) // Runs every 30 seconds
-//    public void scheduledTask() {
-//        cancelExpiredBookings();
-//    }
-
-    @Scheduled(fixedRate = 30000) // Run every 30 seconds
-    public void cancelExpiredBookings() {
-        Instant expirationTime = Instant.now().minusSeconds(120); // Bookings older than 120s
-
-        // Find expired pending bookings
-        Query query = new Query();
-        query.addCriteria(Criteria.where("status").is(BookingStatusEnums.PENDING)
-                .and("createdAt").lt(expirationTime));
-
-        List<Booking> expiredBookings = mongoTemplate.find(query, Booking.class);
-
-        if (!expiredBookings.isEmpty()) {
-            // Collect user IDs to send notifications
-            List<String> userIds = expiredBookings.stream()
-                    .map(Booking::getUserId)
-                    .toList();
-
-            // Update the bookings to CANCELLED
-            Update update = new Update();
-            update.set("status", BookingStatusEnums.CANCELLED);
-            mongoTemplate.updateMulti(query, update, Booking.class);
-
-            // Send push notifications
-//            sendPushNotifications(userIds, "Your booking has been cancelled due to inactivity.");
-            log.info("current users Id booking canceled : {}", userIds);
-
-        }
-        System.out.println("Current Instant Time: " + Instant.now());
-
-    }
-
-
-    public Booking cancelAndReturnBooking(String bookingId) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("_id").is(bookingId));
-
-        Booking booking = mongoTemplate.findOne(query, Booking.class);
+//        Booking booking = mongoTemplate.findOne(query, Booking.class);
+        Optional<Booking> bookingOptional = bookingRepository.findById(cancelBookingRequest.getBookingId());
+        Booking booking = bookingOptional.orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (booking == null) {
             throw new RuntimeException("Booking not found");
@@ -382,22 +356,46 @@ public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type,
             if (booking.getStartDateTime().isBefore(now)) {
                 // Booking has already started → Apply partial refund or deny cancellation
                 log.info("Booking has already started → Apply partial refund or deny cancellation");
-
+                throw new RuntimeException("Booking already started, Can not refund at this point");
 //                handlePartialRefund(booking);
             } else {
                 // Booking hasn't started → Apply full refund
                 log.info("Booking hasn't started → Apply full refund");
-
+                booking.setCanceledReason(cancelBookingRequest.getCancelReason());
+                try {
+                paymentClient.refundOrder(RefundRequest.builder()
+                        .bookingId(cancelBookingRequest.getBookingId())
+                        .refundReason(cancelBookingRequest.getCancelReason())
+                        .build());
 //                handleFullRefund(booking);
+                } catch (FeignException e) { // Handle Feign client errors
+                    throw new AppException(ErrorCode.CLIENT_CANNOT_REFUND);
+                }
             }
         }
 
-        // Update status to CANCELLED
-        Update update = new Update();
-        update.set("status", BookingStatusEnums.CANCELLED);
+//        // Update status to CANCELLED
+//        Update update = new Update();
+//        update.set("status", BookingStatusEnums.CANCELLED);
+//
+//        return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Booking.class);
 
-        return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Booking.class);
-    }
+        // Update the status
+        booking.setStatus(BookingStatusEnums.CANCELLED);
+
+        // Save the updated booking
+        return bookingRepository.save(booking);
+}
+
+
+
+//    public Booking extendBooking(CancelBookingRequest cancelBookingRequest) {
+//
+//        return null;
+//    }
+
+
+
     public Booking findBookingById(String bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
@@ -409,6 +407,153 @@ public Set<String> getInvalidSlots(String locationId, ServiceProvidedEnums type,
             return bookingRepository.findByUserId(userId); // Return all bookings if no type is provided
         }
         return bookingRepository.findByUserIdAndType(userId, type);
+    }
+
+
+
+//    public void reassignSlots(String locationId, ServiceProvidedEnums type, Set<String> extendedSlotIds, Instant extendedStart, Instant extendedEnd) {
+public Booking extendBooking(ExtendBookingRequest extendBookingRequest) {
+
+        // ✅ STEP 1: Fetch only bookings that overlap with the extended booking
+        List<Booking> allAffectedBookings = bookingRepository.findOverlappingBookings(extendBookingRequest.getLocationId(), extendBookingRequest.getStartDateTime(), extendBookingRequest.getEndDateTime().plus(Duration.ofMinutes(10)), extendBookingRequest.getType().name())
+            .stream()
+            .filter(booking -> booking.getStatus() != BookingStatusEnums.CANCELLED) // Exclude cancelled bookings
+            .toList();
+
+
+        Set<String> extendedSlotIds = extendBookingRequest.getSlotBasicInfos().stream()
+                .map(SlotBasicInfo::getSlotId) // Extract slotId from each SlotBasicInfo
+                .collect(Collectors.toSet());  // Collect into a Set
+
+        // ✅ STEP 1.1: Filter bookings to include only those that contain at least one slot from extendedSlotIds
+        List<Booking> affectedBookings = allAffectedBookings.stream()
+                .filter(booking -> booking.getSlotBasicInfos().stream()
+                        .anyMatch(slot -> extendedSlotIds.contains(slot.getSlotId()))) // Keep only bookings with affected slots
+                .collect(Collectors.toList());
+
+        // ✅ STEP 2: Group bookings by time range
+        Map<TimeRange, List<Booking>> bookingsByTimeRange = new HashMap<>();
+        for (Booking booking : affectedBookings) {
+            TimeRange range = new TimeRange(booking.getStartDateTime(), booking.getEndDateTime());
+            bookingsByTimeRange.computeIfAbsent(range, k -> new ArrayList<>()).add(booking);
+        }
+
+        // ✅ STEP 3: Process each time range separately
+        List<Booking> updatedBookings = new ArrayList<>();
+
+        for (Map.Entry<TimeRange, List<Booking>> entry : bookingsByTimeRange.entrySet()) {
+            TimeRange timeRange = entry.getKey();
+            List<Booking> bookings = entry.getValue();
+/// ////////////////
+//            // Step 3.1: Find all overlapping bookings for this specific time range
+//            List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(extendBookingRequest.getLocationId(), timeRange.getStart(), timeRange.getEnd(), extendBookingRequest.getType().name())
+//                    .stream()
+//                    .filter(booking -> booking.getStatus() != BookingStatusEnums.CANCELLED) // Exclude cancelled bookings
+//                    .toList();
+//
+//            // Step 3.2: Collect all occupied slots within this time range
+//            Set<String> occupiedSlots = new HashSet<>();
+//            for (Booking b : overlappingBookings) {
+//                for (SlotBasicInfo slot : b.getSlotBasicInfos()) {
+//                    occupiedSlots.add(slot.getSlotId());
+//                }
+//            }
+//
+//            // Step 3.3: Get available slots (excluding occupied ones)
+//            List<ChargingSlot> availableSlots = findAvailableChargingSlots(locationId, type, new ArrayList<>(occupiedSlots));
+
+            Set<String> availableSlots = getValidSlots(extendBookingRequest.getLocationId(), extendBookingRequest.getType(), timeRange.getStart(), timeRange.getEnd(), false);// set là false để đảm bảo ko quá sát thời gian khi booking phải cách nhau 10min
+
+/// //////////////////
+            // Step 3.4: Ensure enough available slots before making any changes
+            int requiredSlots = bookings.stream()
+                    .mapToInt(b -> getOverlappingSlotCount(b, extendedSlotIds))
+                    .sum();
+
+            if (availableSlots.size() < requiredSlots) {
+                throw new RuntimeException("Not enough slots available for reassignment in time range: " + timeRange);
+            }
+
+            // Step 3.5: Reassign available slots
+            Queue<String> availableQueue = new LinkedList<>(availableSlots);
+            for (Booking booking : bookings) {
+                for (SlotBasicInfo slot : booking.getSlotBasicInfos()) {
+                    if (extendedSlotIds.contains(slot.getSlotId())) {  // If the slot needs reassignment
+                        String newSlotId = availableQueue.poll();  // Get next available slot
+                        if (newSlotId != null) {
+                            if (booking.getReassignedSlots() == null) {
+                                booking.setReassignedSlots(new HashMap<>()); // Ensure the map exists
+                            }
+                            booking.getReassignedSlots().put(slot.getSlotId(), newSlotId);  // Track reassignment
+                            slot.setSlotId(newSlotId);  // Replace slot in the booking
+                            ///  do more here set more even regen Qrcode slotNubmer ....
+                        }
+                    }
+                }
+                updatedBookings.add(booking); // Queue booking for bulk save
+            }
+        }
+
+//    // ✅ STEP 4: CREATE THE EXTENDED BOOKING BEFORE BULK SAVE
+//        Booking extendedBooking = new Booking();
+//        extendedBooking.setLocationId(extendBookingRequest.getLocationId());
+//        extendedBooking.setStartDateTime(extendBookingRequest.getStartDateTime());
+//        extendedBooking.setEndDateTime(extendBookingRequest.getEndDateTime());
+//        extendedBooking.setType(extendBookingRequest.getType());
+//        extendedBooking.setStatus(BookingStatusEnums.ACTIVE);
+//        extendedBooking.setSlotBasicInfos(extendBookingRequest.getSlotBasicInfos()); // Assign requested slots
+//
+//
+//
+//
+//    // Add the new booking to the list
+//        updatedBookings.add(extendedBooking);
+
+    // ✅ STEP 5: BULK SAVE AFTER ALL VALIDATIONS
+        if (!updatedBookings.isEmpty()) {
+            bookingRepository.saveAll(updatedBookings);
+        }
+
+        //send noti to affected user
+        for (Booking booking : affectedBookings) {
+            try {
+//                notificationClient.sendEmailBookingConfirmed(bookingConfirmedEmailRequest);
+//                notificationClient.scheduleNotification(ScheduledNotificationRequest.builder().bookingId(booking.getId()).startDateTime(booking.getStartDateTime()).build());
+//                //push noti telling
+//                sendNotification(booking.getUserId(), booking.getReassignedSlots());
+                log.info("send noti to affected user");
+
+
+            } catch (FeignException e) { // Handle Feign client errors
+                throw new AppException(ErrorCode.CANNOT_SEND_EMAIL);
+            }
+        }
+
+
+    // ✅ STEP 4: Create a new booking using createBooking()
+        BookingRequest newBookingRequest = BookingRequest.builder()
+                .locationId(extendBookingRequest.getLocationId())
+                .type(extendBookingRequest.getType())
+                .wattHours(extendBookingRequest.getWattHours()) // Ensure wattHours is retained
+                .startDateTime(extendBookingRequest.getStartDateTime())
+                .endDateTime(extendBookingRequest.getEndDateTime())
+                .SlotBasicInfos(extendBookingRequest.getSlotBasicInfos())
+                .fromBookingId(extendBookingRequest.getFromBookingId())
+                .build();
+
+        return createBooking(newBookingRequest); // 🔥 Reuse createBooking method
+    }
+
+
+    // ✅ Function to get the number of overlapping slots in a booking
+    private int getOverlappingSlotCount(Booking booking, Set<String> extendedSlotIds) {
+        Set<String> bookingSlotIds = booking.getSlotBasicInfos().stream()
+                .map(SlotBasicInfo::getSlotId)  // Extract slotId from each SlotBasicInfo
+                .collect(Collectors.toSet());
+
+        return (int) bookingSlotIds.stream()
+                .filter(extendedSlotIds::contains)  // Keep only slots that exist in extendedSlotIds
+                .count();  // Count the overlapping slots
     }
 
 }

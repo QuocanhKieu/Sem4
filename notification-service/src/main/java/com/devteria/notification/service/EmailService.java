@@ -1,9 +1,6 @@
 package com.devteria.notification.service;
 
-import com.devteria.notification.dto.request.BookingConfirmedEmailRequest;
-import com.devteria.notification.dto.request.EmailRequest;
-import com.devteria.notification.dto.request.SendEmailRequest;
-import com.devteria.notification.dto.request.Sender;
+import com.devteria.notification.dto.request.*;
 import com.devteria.notification.dto.response.EmailResponse;
 import com.devteria.notification.exception.AppException;
 import com.devteria.notification.exception.ErrorCode;
@@ -113,6 +110,29 @@ public class EmailService {
             throw new RuntimeException("Failed to send email", e);
         }
     }
+
+    public void sendBookingRefundedEmail(String to, BookingRefundedEmailRequest bookingData) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Load Thymeleaf template
+            Context context = new Context();
+            context.setVariable("name", to);
+            context.setVariable("otp", 8888);
+            String htmlContent = templateEngine.process("otp-email", context);
+
+            helper.setTo(to);
+            helper.setSubject("Your OTP Code");
+            helper.setText(htmlContent, true); // true = send as HTML
+            helper.setFrom("POLO@service.com");
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
 
     public void sendBookingAboutToHappenEmail(String to, String bookingId) {
         try {

@@ -20,6 +20,7 @@ public enum ErrorCode {
     CANNOT_SEND_OTP(1010, "Can not send OTP", HttpStatus.INTERNAL_SERVER_ERROR),
     EMAIL_NOT_VERIFIED(1011, "You have not verified email", HttpStatus.UNAUTHORIZED),
     CANNOT_CONFIRM_BOOKING(1012, "Can not CONFIRM_BOOKING", HttpStatus.INTERNAL_SERVER_ERROR),
+    PAYMENT_ALREADY_EXISTS(1013, "PAYMENT_ALREADY_EXISTS", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

@@ -17,7 +17,7 @@ package com.devteria.payment.repository.httpclient;// package com.devteria.payme
 @FeignClient(name = "app-data-service", url = "${app.services.app-data-service}",
         configuration = { AuthenticationRequestInterceptor.class })
  public interface BookingAppDataClient {
-    @PutMapping(value = "internal/confirm/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/bookings/internal/confirm", produces = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<String> confirmBooking(@RequestBody ConfirmedBookingRequest confirmedBookingRequest);
 
  }

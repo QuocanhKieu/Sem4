@@ -46,7 +46,7 @@ public class    Booking {
 
     ServiceProvidedEnums type;
     BookingStatusEnums status;// get updated when confirmed
-    String canceledReason;// get updated when confirmed
+    String canceledReason;// get updated when cancelled
 
     Integer wattHours;
 
@@ -73,6 +73,10 @@ public class    Booking {
     // update khi ko dùng thành instant.now để clear slots
     Instant endDateTime;
 
+
+//    Set<String> conflictedWithBookingIds; // Stores IDs of conflicting bookings
+    Map<String, String> reassignedSlots;
+    String FromBookingId;
 //    // lý thuyết
 //    Instant bookedEndDateTime;
 }

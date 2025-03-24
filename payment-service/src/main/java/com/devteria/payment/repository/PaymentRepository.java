@@ -9,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, String> {
 
-    Optional<Payment> findByTransactionReference(String transactionReference);
+//    Optional<Payment> findByTransactionReference(String transactionReference);
 
     Optional<Payment> findByBookingId(String bookingId);
 }

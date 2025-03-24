@@ -12,7 +12,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Builder
@@ -21,10 +20,9 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 
-public class BookingRequest {
+public class ExtendBookingRequest {
     String locationId;
     String fromBookingId;
-
     ServiceProvidedEnums type;
     Integer wattHours;
     @JsonSerialize(using = VietnamTimeSerializer.class)  // Convert from UTC → GMT+7 (for frontend)
